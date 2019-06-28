@@ -4,8 +4,9 @@ const fs = require('fs');
 const readline = require('readline-sync');
 
 const conf = {
-    API_KEY: process.env.API_KEY || '86be3a6be74a4a2da063cc43ad0840a5',
-    BASE_URL: process.env.BASE_URL || 'https://westus.tts.speech.microsoft.com/',
+    API_KEY: process.env.API_KEY || 'a0cf201cdd2e416b9e3b45c0f2ff5048',
+    SOURCE_NAME: process.env.SOURCE_NAME || 'testspeech',
+    REGION: process.env.REGION || 'southeastasia'
 };
 
 let token = null;
@@ -58,11 +59,12 @@ async function refreshToken() {
 function getAccessToken(subscriptionKey) {
     const options = {
         method: 'POST',
-        uri: 'https://westus.api.cognitive.microsoft.com/sts/v1.0/issueToken',
+        uri: `https://${conf.REGION}.api.cognitive.microsoft.com/sts/v1.0/issuetoken`,
         headers: {
             'Ocp-Apim-Subscription-Key': conf.API_KEY
         }
-    }
+    };
+
     return rp(options);
 }
 
@@ -75,7 +77,7 @@ function textToSpeech(accessToken, data) {
         .ele('voice')
         .att('xml:lang', data.lang)
         .att('xml:gender', data.gender)
-        .att('name', 'zh-CN-Kangkang-Apollo') // Short name for 'Microsoft Server Speech Text to Speech Voice (en-US, Guy24KRUS)'
+        .att('name', data.name) // Short name for 'Microsoft Server Speech Text to Speech Voice (en-US, Guy24KRUS)'
         .txt(data.text)
         .end();
     // Convert the XML into a string to send in the TTS request.
@@ -83,12 +85,12 @@ function textToSpeech(accessToken, data) {
 
     const options = {
         method: 'POST',
-        baseUrl: conf.BASE_URL,
+        baseUrl: `https://${conf.REGION}.tts.speech.microsoft.com/`,
         url: 'cognitiveservices/v1',
         headers: {
             'Authorization': 'Bearer ' + accessToken,
             'cache-control': 'no-cache',
-            'User-Agent': 'YOUR_RESOURCE_NAME',
+            'User-Agent': conf.SOURCE_NAME,
             'X-Microsoft-OutputFormat': 'riff-24khz-16bit-mono-pcm',
             'Content-Type': 'application/ssml+xml'
         },

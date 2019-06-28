@@ -16,7 +16,8 @@
 
 ```bash
 API_KEY:  微软Text To Speech 服务secret key
-BASE_URL: 微软的API 路径
+SOURCE_NAME: 在portal.azure.com 里面All resources 名称
+REGION: 使用地区
 ```
 
 
