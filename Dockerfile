@@ -1,4 +1,4 @@
-FROM node:8.15-alpine
+FROM registry.29tech.cn/ubuntu-ffmpeg-nodejs-sox
 
 COPY ./ /root/app
 WORKDIR /root/app
