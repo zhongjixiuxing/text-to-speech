@@ -36,8 +36,6 @@ function downloadFun (assets)  {
     return Promise.all(downloadPromises);
 }
 
-var demoBody = require('./demo.json');
-
 const getWavDetail = (file) => {
   return new Promise((resolve, reject) => {
      file = path.resolve(file);
