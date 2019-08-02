@@ -73,15 +73,22 @@ function textToSpeech(accessToken, data) {
     // Create the SSML request.
     const xml_body = xmlbuilder.create('speak')
         .att('version', '1.0')
+        .att('xmlns', 'https://www.w3.org/2001/10/synthesis')
+        .att('xmlns:mstts', 'https://www.w3.org/2001/mstts')
         .att('xml:lang', data.lang)
         .ele('voice')
         .att('xml:lang', data.lang)
         .att('xml:gender', data.gender)
         .att('name', data.name) // Short name for 'Microsoft Server Speech Text to Speech Voice (en-US, Guy24KRUS)'
+        .ele('mstts:express-as')
+        .att('type', data.type)
         .txt(data.text)
         .end();
-    // Convert the XML into a string to send in the TTS request.
-    const body = xml_body.toString();
+    let body = xml_body.toString();
+
+    // transfer encode character
+    body = body.replace('&lt;', '<');
+    body = body.replace('&gt;', '>');
 
     const options = {
         method: 'POST',

@@ -15,6 +15,7 @@ router.post('/', async function(req, res, next) {
         lang: req.body.lang || 'zh-CN',
         gender: req.body.gender || 'Male',
         name: req.body.name || 'zh-CN-Kangkang-Apollo',
+        type: req.body.type || 'sentiment',
         fileId: uuid()
       };
 

@@ -13,6 +13,7 @@ const textToSpeechTemplate = {
   lang: 'zh-CN',
   gender: 'Female',
   name: 'zh-CN-XiaoxiaoNeural',
+  type: 'sentiment',
   fileId: uuid()
 };
 
@@ -60,10 +61,10 @@ const generateSrt = (list, file) => {
     const subtitle = list[i];
     const startTime = transferTs(subtitle.ts);
     const endTime = transferTs(subtitle.lts);
-  
+
     if ( i !== 0 ) {
       fs.appendFileSync(file, '\n');
-    } 
+    }
     fs.appendFileSync(file, i + 1);
     fs.appendFileSync(file, '\n');
     fs.appendFileSync(file, `${startTime} --> ${endTime}`);
@@ -72,7 +73,7 @@ const generateSrt = (list, file) => {
     fs.appendFileSync(file, '\n');
   }
 
-  return file; 
+  return file;
 }
 
 const generateSound = async (list, file, workspaceDir) => {
@@ -102,7 +103,7 @@ const generateSound = async (list, file, workspaceDir) => {
       const tempTimeStr = `${tempTime.getSeconds()}.${tempTime.getMilliseconds()}`;
       command = `sox -n -r 24000 -b 16 -c 1 -L ${tempWavFile} trim 0.0 ${tempTimeStr}`;
       execSync(command);
-    
+
       command = `sox ${file} ${tempWavFile} ${tempNewWavFile}`;
       execSync(command);
       execSync(`rm -rf ${tempWavFile}`);
@@ -110,7 +111,7 @@ const generateSound = async (list, file, workspaceDir) => {
       command = `rm -rf ${file} && mv ${tempNewWavFile} ${file}`;
       execSync(command);
     }
-    
+
     const subtitleSound = `${workspaceDir}/${subtitle.fileId}.wav`
     command = `sox ${file} ${subtitleSound} ${tempNewWavFile}`;
     execSync(command);
@@ -131,19 +132,24 @@ const exec = async (videoUrl, subtitlesBody) => {
   const workspaceId = uuid();
   const workspaceDir = path.resolve(config.cache, workspaceId);
   const inputVideo = `${workspaceDir}/input.mp4`;
-  try {	 
+  try {
     execSync(`mkdir -p ${workspaceDir}`);
     const downloadBody = {
       url: videoUrl,
       savePath: inputVideo,
     };
     await downloadFun([downloadBody]);
-  
+
     for (let i=0; i<subtitlesBody.length; i++) {
       const body = {...textToSpeechTemplate};
       const data = subtitlesBody[i];
       body.fileId = uuid();
       body.text = data.text;
+      if (data.hasOwnProperty('tone')) {
+        body.type = data.tone;
+      } else {
+        body.type = 'sentiment';
+      }
       await convert(body);
 
       // mv wav file to workspace dir
@@ -183,6 +189,6 @@ const exec = async (videoUrl, subtitlesBody) => {
   } finally {
     //execSync(`rm -rf ${workspaceDir}`);
   }
-} 
+}
 
 module.exports = exec;
