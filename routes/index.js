@@ -24,7 +24,7 @@ router.post('/', async function(req, res, next) {
       let pathName = '/' + data.fileId + '.wav';
       if (config.s3.SEND_TO_CLOUD || true) {
           const uploadFile = `${data.fileId}.wav`;
-          await minio.upload(path.resolve('../public', uploadFile), uploadFile);
+          await minio.upload(path.resolve(__dirname, '../public', uploadFile), uploadFile);
           pathName = `${config.s3.MINIO_SAVE_BUCKET}/${uploadFile}`;
       }
       res.json({ err: null, data: pathName });
