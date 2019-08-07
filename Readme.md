@@ -43,7 +43,8 @@ parameters:
     // 下面的看微软的API参数 https://docs.microsoft.com/en-us/azure/cognitive-services/speech-service/language-support#text-to-speech
     lang: string, 对应微软的API的 "Locale", eg/default: "zh-CN"
     gender: string, 对应微软的API的 "Gender", eg/defalt: "Male"
-    name: string, 对应微软的API的 "Short voice name", eg/defalt: "zh-CN-Kangkang-Apollo"
+    name: string, 对应微软的API的 "Short voice name", eg/defalt: "zh-CN-Kangkang-Apollo",
+    type: string, default: sentiment. 
 	}
 
 ```
@@ -62,7 +63,8 @@ parameters:
 	subtitles: [{
 		ts: int, 字幕开始时间(毫秒／ms),
 		lts: int 字幕结束时间(毫秒／ms),
-		text: string 字幕内容
+		text: string 字幕内容,
+		tone: string, default: sentiment. 对应于API里面的type field
 	}]
 
 ```

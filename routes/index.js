@@ -5,6 +5,7 @@ const subtitlesSoundExec = require('./subtitles_sounds');
 const uuid = require('uuid/v4');
 const minio = require('./minio');
 const config = require('../config');
+const path = require("path");
 
 /* GET home page. */
 router.post('/', async function(req, res, next) {
@@ -20,7 +21,13 @@ router.post('/', async function(req, res, next) {
       };
 
       await convert(data);
-      res.json({ err: null, data: '/' + data.fileId + '.wav' });
+      let pathName = '/' + data.fileId + '.wav';
+      if (config.s3.SEND_TO_CLOUD || true) {
+          const uploadFile = `${data.fileId}.wav`;
+          await minio.upload(path.resolve('../public', uploadFile), uploadFile);
+          pathName = `${config.s3.MINIO_SAVE_BUCKET}/${uploadFile}`;
+      }
+      res.json({ err: null, data: pathName });
   } catch (e) {
       console.error('Unknow Error : ', e);
       res.json({ err: 'ServerError' });
