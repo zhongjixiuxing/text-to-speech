@@ -6,6 +6,19 @@ const uuid = require('uuid/v4');
 const minio = require('./minio');
 const config = require('../config');
 const path = require("path");
+const WavFileInfo = require('wav-file-info');
+
+const getWavDetail = (file) => {
+    return new Promise((resolve, reject) => {
+        file = path.resolve(file);
+        WavFileInfo.infoByFilename(file, function(err, info){
+            if (err) {
+                return reject(err);
+            }
+            return resolve(info);
+        });
+    });
+}
 
 /* GET home page. */
 router.post('/', async function(req, res, next) {
@@ -22,12 +35,19 @@ router.post('/', async function(req, res, next) {
 
       await convert(data);
       let pathName = '/' + data.fileId + '.wav';
-      if (config.s3.SEND_TO_CLOUD || true) {
-          const uploadFile = `${data.fileId}.wav`;
-          await minio.upload(path.resolve(__dirname, '../public', uploadFile), uploadFile);
+      const uploadFile = `${data.fileId}.wav`;
+      const uploadFileFullPath = path.resolve(__dirname, '../public', uploadFile);
+      if (config.s3.SEND_TO_CLOUD) {
+          await minio.upload(uploadFileFullPath, uploadFile);
           pathName = `${config.s3.MINIO_SAVE_BUCKET}/${uploadFile}`;
       }
-      res.json({ err: null, data: pathName });
+
+      const wavInfos = await getWavDetail(uploadFileFullPath);
+
+      res.json({ err: null, data: {
+          path: pathName,
+          ...wavInfos
+      }});
   } catch (e) {
       console.error('Unknow Error : ', e);
       res.json({ err: 'ServerError' });
