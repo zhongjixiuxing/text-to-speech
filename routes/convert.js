@@ -2,6 +2,8 @@ const xmlbuilder = require('xmlbuilder');
 const rp = require('request-promise');
 const fs = require('fs');
 const readline = require('readline-sync');
+const child_process = require('child_process');
+const execSync = child_process.execSync;
 
 const conf = {
     API_KEY: process.env.API_KEY || 'a0cf201cdd2e416b9e3b45c0f2ff5048',
@@ -28,17 +30,58 @@ setInterval(() => {
  *
  */
 async function convert (data) {
-    // Prompts the user to input text.
-    //const text = readline.question('您好？你是谁？');
-
     try {
         if (!token) {
             await refreshToken();
         }
 
-        await textToSpeech(token, data);
+        const transferList = [];
+        let breakList = data.text.match(/.*?<break time=.*? \/>|\w+/g);
+        if (!breakList) {
+            breakList = [data];
+        } else {
+            for (let i=0; i<breakList.length; i++) {
+                breakList[i] = breakList[i].trim();
+
+                const transferData = {...data};
+                transferData.text = breakList[i];
+                transferList.push(transferData);
+            }
+        }
+
+        if (breakList.length === 1) {
+            return await textToSpeech(token, data);
+        }
+
+        const workspaceId = data.fileId;
+        const workspace = __dirname + '/../public/' + workspaceId;
+        execSync(`mkdir -p ${workspace}`);
+        const combinedFile = `${workspace}/combined.wav`;
+        const tempFile = `${workspace}/temp.wav`;
+        for (let i=0; i<breakList.length; i++) {
+            const breakItem = {...data};
+            breakItem.text = breakList[i];
+            breakItem.fileId = `${data.fileId}/${i}`;
+            await textToSpeech(token, breakItem);
+
+            if (i === 0) {
+                execSync(`cp ${workspace}/0.wav ${combinedFile}`);
+                continue;
+            }
+
+            execSync(`sox ${combinedFile} ${workspace}/${i}.wav ${tempFile}`);
+            execSync(`rm -rf ${combinedFile} && mv ${tempFile} ${combinedFile}`);
+        }
+
+        console.log('breakList : ', breakList);
+
+        const finalFile = workspace + '.wav';
+        execSync(`mv ${combinedFile} ${finalFile}`);
     } catch (err) {
         console.log(`Something went wrong: ${err}`);
+    } finally {
+        const dir = __dirname + '/../public/' + data.fileId;
+        execSync(`rm -rf ${dir}`);
     }
 }
 
