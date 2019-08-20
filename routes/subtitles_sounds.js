@@ -165,16 +165,24 @@ const exec = async (videoUrl, subtitlesBody) => {
     const wavFile = `${workspaceDir}/output.wav`;
     generateSrt(subtitles, srtFile);
     generateSound(subtitles, wavFile, workspaceDir);
+
+    // delete original volume/sound track
+    const muteVideo = `${workspaceDir}/tempMuteVideo.mp4`;
+    command = `ffmpeg -i ${inputVideo} -c copy -an ${muteVideo}`;
+    execSync(command);
+    command = `rm -rf ${inputVideo} && mv ${muteVideo} ${inputVideo}`;
+    execSync(command);
+
     const outputVideo = `${workspaceDir}/output_temp.mp4`;
     let command = `ffmpeg -i ${inputVideo} -vf subtitles=${srtFile} ${outputVideo}`;
     execSync(command);
 
-    // delete original volume/sound track
-    const muteVideo = `${workspaceDir}/tempMuteVideo.mp4`;
-    command = `ffmpeg -i ${outputVideo} -c copy -an ${muteVideo}`;
-    execSync(command);
-    command = `rm -rf ${outputVideo} && mv ${muteVideo} ${outputVideo}`;
-    execSync(command);
+    // // delete original volume/sound track
+    // const muteVideo = `${workspaceDir}/tempMuteVideo.mp4`;
+    // command = `ffmpeg -i ${outputVideo} -c copy -an ${muteVideo}`;
+    // execSync(command);
+    // command = `rm -rf ${outputVideo} && mv ${muteVideo} ${outputVideo}`;
+    // execSync(command);
 
     // mix person sounds
     const finalVideo = `${workspaceDir}/output.mp4`;
