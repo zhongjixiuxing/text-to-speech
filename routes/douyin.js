@@ -68,7 +68,7 @@ const exec = async (body) => {
 
 
     // render video
-    command = `// ffmpeg -i ${workspaceDir}/video-bg.png -i ${workspaceDir}/video.mp4 -filter_complex "[1:v]scale=480:-1[fg];[0:v][fg]overlay=0:124" ${workspaceDir}/output.mp4`;
+    command = `ffmpeg -i ${workspaceDir}/video-bg.png -i ${workspaceDir}/video.mp4 -filter_complex "[1:v]scale=480:-1[fg];[0:v][fg]overlay=0:124" ${workspaceDir}/output.mp4`;
     execSync(command);
 
     return {
